@@ -654,7 +654,7 @@
     <div class="storico-wrap" id="storicoWrap" style="display:none;">
         <button class="storico-toggle" id="storicoToggle" onclick="toggleStorico()">
             <span>Storico Archiviati <span class="storico-count" id="storicoCount">0</span></span>
-            <span class="arrow">⬇️</span>
+            <span class="arrow">▼</span>
         </button>
         <div class="storico-body" id="storicoBody">
             <div class="table-wrap">
@@ -952,7 +952,7 @@
         const arrow  = toggle.querySelector('.arrow');
         body.classList.toggle('open');
         toggle.classList.toggle('open');
-        arrow.textContent = body.classList.contains('open') ? '⬆️' : '⬇️';
+        arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
     }
 
     function mostraStorico() {
