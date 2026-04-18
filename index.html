@@ -842,8 +842,8 @@
                     <td>
                         <div class="row-actions">
                             <button class="btn-gcal-row" onclick="inviaAGcal(${c.id})" title="Invia a Google Calendar" style="display:${_gcalToken ? '' : 'none'}">📅</button>
-                            <button class="btn-arch" onclick="archiviaChiamata(${c.id})" title="Archivia">⊟</button>
-                            <button class="btn-del"  onclick="eliminaChiamata(${c.id})" title="Elimina">✕</button>
+                            <button class="btn-arch" onclick="archiviaChiamata(${c.id})" title="Archivia">🗂️</button>
+                            <button class="btn-del"  onclick="eliminaChiamata(${c.id})" title="Elimina">🗑️</button>
                         </div>
                     </td>`;
                 tbody.appendChild(row);
@@ -972,7 +972,7 @@
                 <td>
                     <div class="row-actions">
                         <button class="btn-restore" onclick="ripristinaChiamata(${c.id})" title="Ripristina">↩</button>
-                        <button class="btn-del"     onclick="eliminaDaArchivio(${c.id})"  title="Elimina definitivamente">✕</button>
+                        <button class="btn-del"     onclick="eliminaDaArchivio(${c.id})"  title="Elimina definitivamente">🗑️</button>
                     </div>
                 </td>`;
             tbody.appendChild(row);
