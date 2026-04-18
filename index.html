@@ -967,6 +967,7 @@
     /* ── Google Calendar ── */
     const GCAL_SCOPES    = 'https://www.googleapis.com/auth/calendar.events';
     const GCAL_DISCOVERY = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
+    const GCAL_CLIENT_ID = '1004381119202-kks1o6ujt7su4353u7kahet663ssatqf.apps.googleusercontent.com';
 
     let _gapiReady   = false;
     let _gisReady    = false;
@@ -976,8 +977,10 @@
     (function initGcalUI() {
         const el = document.getElementById('gcalOriginHint');
         if (el) el.textContent = window.location.origin;
-        const saved = localStorage.getItem('gcal_client_id');
-        if (saved) document.getElementById('gcalClientIdInput').value = saved;
+        if (!localStorage.getItem('gcal_client_id')) {
+            localStorage.setItem('gcal_client_id', GCAL_CLIENT_ID);
+        }
+        document.getElementById('gcalClientIdInput').value = localStorage.getItem('gcal_client_id');
     })();
 
     function gapiLoaded() {
