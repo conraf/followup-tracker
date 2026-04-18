@@ -548,7 +548,7 @@
             <span id="gcalStatusText">Google Calendar — non connesso</span>
         </div>
         <button class="btn-gcal-action" id="gcalBtn" onclick="handleGcalAuth()" disabled>Connetti</button>
-        <button class="btn-gcal-gear" onclick="toggleGcalSettings()" title="Impostazioni Client ID">⚙</button>
+        <button class="btn-gcal-gear" onclick="toggleGcalSettings()" title="Impostazioni Client ID">⚙️</button>
     </div>
     <div class="gcal-settings-panel" id="gcalSettingsPanel">
         <div class="section-label">Client ID Google OAuth2</div>
@@ -649,7 +649,7 @@
     <div class="storico-wrap" id="storicoWrap" style="display:none;">
         <button class="storico-toggle" id="storicoToggle" onclick="toggleStorico()">
             <span>Storico Archiviati <span class="storico-count" id="storicoCount">0</span></span>
-            <span class="arrow">▾</span>
+            <span class="arrow">🔽</span>
         </button>
         <div class="storico-body" id="storicoBody">
             <div class="table-wrap">
@@ -944,8 +944,10 @@
     function toggleStorico() {
         const body   = document.getElementById('storicoBody');
         const toggle = document.getElementById('storicoToggle');
+        const arrow  = toggle.querySelector('.arrow');
         body.classList.toggle('open');
         toggle.classList.toggle('open');
+        arrow.textContent = body.classList.contains('open') ? '🔼' : '🔽';
     }
 
     function mostraStorico() {
