@@ -623,6 +623,7 @@
     <div class="table-card">
         <div class="table-head-row">
             <span class="section-label" style="margin:0;flex:1;">Log Chiamate</span>
+            <button class="btn-clear" onclick="esportaCSV()" style="margin-right:8px;">📤 Esporta CSV</button>
             <button class="btn-clear" onclick="cancellatutte()">Cancella tutto</button>
         </div>
         <div class="table-wrap">
@@ -978,6 +979,32 @@
                 </td>`;
             tbody.appendChild(row);
         });
+    }
+
+    function esportaCSV() {
+        const attive   = JSON.parse(localStorage.getItem('chiamate'))          || [];
+        const archivio = JSON.parse(localStorage.getItem('chiamate_archivio')) || [];
+        const tutto    = [
+            ...attive.map(c   => ({ ...c, stato: 'attiva' })),
+            ...archivio.map(c => ({ ...c, stato: 'archiviata' })),
+        ];
+        if (tutto.length === 0) { alert('Nessun dato da esportare.'); return; }
+
+        const esc = s => `"${String(s || '').replace(/"/g, '""')}"`;
+        const header = ['Data','Nome','Telefono','Appuntamento','F1','F2','F3','Stato'];
+        const righe  = tutto.map(c => [
+            esc(c.data), esc(c.nome), esc(c.tel), esc(c.appLabel),
+            esc(c.f1label), esc(c.f2label), esc(c.f3label), esc(c.stato),
+        ].join(','));
+
+        const csv  = [header.join(','), ...righe].join('\r\n');
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        const oggi = new Date().toISOString().slice(0, 10);
+        a.href = url; a.download = `followup-${oggi}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
     }
 
     function escHtml(s) {
