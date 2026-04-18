@@ -1,0 +1,17 @@
+{
+  "name": "FollowUp Tracker",
+  "short_name": "FollowUp",
+  "description": "Gestione appuntamenti e promemoria follow-up",
+  "start_url": "/followup-tracker/",
+  "display": "standalone",
+  "background_color": "#060e1a",
+  "theme_color": "#060e1a",
+  "icons": [
+    {
+      "src": "fut-icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
