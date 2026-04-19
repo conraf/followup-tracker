@@ -1063,10 +1063,7 @@
                 const idEsistenti = new Set(esistenti.map(c => c.id));
                 const idArchiviati= new Set(archiviati.map(c => c.id));
 
-                const nuove    = dati.chiamate.filter(c          => !idEsistenti.set(c.id));
-                const nuoveArch= dati.chiamate_archivio.filter(c => !idArchiviati.has(c.id));
-
-                localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati.chiamate.filter(c => !idEsistenti.has(c.id))]));
+localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati.chiamate.filter(c => !idEsistenti.has(c.id))]));
                 localStorage.setItem('chiamate_archivio', JSON.stringify([...archiviati, ...dati.chiamate_archivio.filter(c => !idArchiviati.has(c.id))]));
 
                 mostraDati();
