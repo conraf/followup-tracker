@@ -530,7 +530,7 @@
     <!-- Header -->
     <header class="header" style="display:flex;align-items:center;justify-content:space-between;">
         <div>
-            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.04.19l</div>
+            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.04.19m</div>
             <h1>FOLLOWUP TRACKER</h1>
             <p class="header-sub">Gestione appuntamenti e promemoria follow-up</p>
         </div>
@@ -1063,6 +1063,7 @@
     function leggiJSON(event) {
         const file = event.target.files[0];
         if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { alert('File troppo grande (max 5 MB).'); return; }
         const reader = new FileReader();
         reader.onload = e => {
             try {
