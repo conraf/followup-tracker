@@ -121,6 +121,8 @@
             margin-bottom: 20px;
         }
         .notif-bar.show { display: flex; }
+        .notif-close { margin-left: auto; background: none; border: none; color: var(--orange); opacity: 0.6; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
+        .notif-close:hover { opacity: 1; }
 
         /* ── Form Card ── */
         .form-card {
@@ -528,7 +530,7 @@
     <!-- Header -->
     <header class="header" style="display:flex;align-items:center;justify-content:space-between;">
         <div>
-            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.04.19h</div>
+            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.04.19i</div>
             <h1>FOLLOWUP TRACKER</h1>
             <p class="header-sub">Gestione appuntamenti e promemoria follow-up</p>
         </div>
@@ -588,6 +590,7 @@
     <div class="notif-bar" id="notifBar">
         <span>🔔</span>
         <span id="notifText"></span>
+        <button class="notif-close" onclick="document.getElementById('notifBar').classList.remove('show')" title="Chiudi">✕</button>
     </div>
 
     <!-- Form -->
