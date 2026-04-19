@@ -628,8 +628,11 @@
     <div class="table-card">
         <div class="table-head-row">
             <span class="section-label" style="margin:0;flex:1;">Log Chiamate</span>
-            <button class="btn-clear" onclick="esportaCSV()" style="margin-right:8px;" title="Esporta CSV">📤</button>
+            <button class="btn-clear" onclick="esportaJSON()" style="margin-right:8px;" title="Esporta backup JSON">🗃️</button>
+            <button class="btn-clear" onclick="importaJSON()" style="margin-right:8px;" title="Importa backup JSON">📂</button>
+            <button class="btn-clear" onclick="esportaCSV()" style="margin-right:8px;" title="Esporta CSV">📊</button>
             <button class="btn-clear" onclick="cancellatutte()">Cancella tutto</button>
+            <input type="file" id="importaJSONInput" accept=".json" style="display:none" onchange="leggiJSON(event)">
         </div>
         <div class="table-wrap">
             <table>
@@ -984,6 +987,56 @@
                 </td>`;
             tbody.appendChild(row);
         });
+    }
+
+    function esportaJSON() {
+        const dati = {
+            chiamate:          JSON.parse(localStorage.getItem('chiamate'))          || [],
+            chiamate_archivio: JSON.parse(localStorage.getItem('chiamate_archivio')) || [],
+        };
+        const blob = new Blob([JSON.stringify(dati, null, 2)], { type: 'application/json' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        const oggi = new Date().toISOString().slice(0, 10);
+        a.href = url; a.download = `followup-backup-${oggi}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importaJSON() {
+        document.getElementById('importaJSONInput').value = '';
+        document.getElementById('importaJSONInput').click();
+    }
+
+    function leggiJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const dati = JSON.parse(e.target.result);
+                if (!dati.chiamate || !dati.chiamate_archivio) throw new Error();
+
+                const esistenti   = JSON.parse(localStorage.getItem('chiamate'))          || [];
+                const archiviati  = JSON.parse(localStorage.getItem('chiamate_archivio')) || [];
+                const idEsistenti = new Set(esistenti.map(c => c.id));
+                const idArchiviati= new Set(archiviati.map(c => c.id));
+
+                const nuove    = dati.chiamate.filter(c          => !idEsistenti.set(c.id));
+                const nuoveArch= dati.chiamate_archivio.filter(c => !idArchiviati.has(c.id));
+
+                localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati.chiamate.filter(c => !idEsistenti.has(c.id))]));
+                localStorage.setItem('chiamate_archivio', JSON.stringify([...archiviati, ...dati.chiamate_archivio.filter(c => !idArchiviati.has(c.id))]));
+
+                mostraDati();
+                mostraStorico();
+                checkScadenzeOggi();
+                _gcalToast('Importazione completata');
+            } catch {
+                alert('File JSON non valido o non compatibile.');
+            }
+        };
+        reader.readAsText(file);
     }
 
     function esportaCSV() {
