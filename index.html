@@ -77,7 +77,7 @@
         /* ── Stats ── */
         .stats-bar {
             display: grid;
-            grid-template-columns: repeat(3,1fr);
+            grid-template-columns: repeat(4,1fr);
             gap: 12px;
             margin-bottom: 20px;
             animation: fadeUp 0.45s ease 0.10s both;
@@ -99,11 +99,13 @@
         .stat-card.s-blue::before   { background: var(--primary); }
         .stat-card.s-orange::before { background: var(--orange); }
         .stat-card.s-azure::before  { background: var(--azure); }
+        .stat-card.s-red::before    { background: var(--danger); }
         .stat-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.14em; text-transform: uppercase; }
         .stat-value { font-family: var(--font-display); font-size: 38px; line-height: 1; margin-top: 4px; }
         .stat-card.s-blue   .stat-value { color: var(--azure); }
         .stat-card.s-orange .stat-value { color: var(--orange); }
         .stat-card.s-azure  .stat-value { color: #7dd3fc; }
+        .stat-card.s-red    .stat-value { color: var(--danger); }
 
         /* ── Notification bar ── */
         .notif-bar {
@@ -526,7 +528,7 @@
     <!-- Header -->
     <header class="header" style="display:flex;align-items:center;justify-content:space-between;">
         <div>
-            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.04.19g</div>
+            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.04.19h</div>
             <h1>FOLLOWUP TRACKER</h1>
             <p class="header-sub">Gestione appuntamenti e promemoria follow-up</p>
         </div>
@@ -546,6 +548,10 @@
         <div class="stat-card s-azure">
             <div class="stat-label">Reminder Futuri</div>
             <div class="stat-value" id="statFuture">0</div>
+        </div>
+        <div class="stat-card s-red">
+            <div class="stat-label">Scaduti</div>
+            <div class="stat-value" id="statScaduti">0</div>
         </div>
     </div>
 
@@ -859,7 +865,7 @@
         if (!label || label === '—') return `<span class="fu-badge fu-future" style="opacity:.4">—</span>`;
         const s = getStatus(ts);
         const icon = s === 'today' ? '🔔 ' : s === 'overdue' ? '⚠️ ' : '';
-        return `<span class="fu-badge fu-${s}"><span class="dot dot-${s}"></span>${icon}${label}</span>`;
+        return `<span class="fu-badge fu-${s}"><span class="dot dot-${s}"></span>${icon}${escHtml(label)}</span>`;
     }
 
     /* ── Mostra dati ── */
@@ -890,7 +896,7 @@
                     <td>${fmtBadge(c.f3label, c.f3ts)}</td>
                     <td>
                         <div class="row-actions">
-                            <button class="btn-gcal-row" onclick="inviaAGcal(${c.id})" title="Invia a Google Calendar" style="display:${_gcalToken ? '' : 'none'}">📅</button>
+                            <button class="btn-gcal-row" onclick="inviaAGcal(${c.id})" title="${c.gcalSent ? 'Già inviato — clicca per inviare di nuovo' : 'Invia a Google Calendar'}" style="display:${_gcalToken ? '' : 'none'};opacity:${c.gcalSent ? '0.5' : '1'}">${c.gcalSent ? '✅' : '📅'}</button>
                             <button class="btn-arch" onclick="archiviaChiamata(${c.id})" title="Archivia">🗂️</button>
                             <button class="btn-del"  onclick="eliminaChiamata(${c.id})" title="Elimina">🗑️</button>
                         </div>
@@ -905,21 +911,22 @@
     /* ── Stats ── */
     function aggiornaStats(lista) {
         const oggi = new Date(); oggi.setHours(0,0,0,0);
-        let oggiN = 0, futN = 0;
+        let oggiN = 0, futN = 0, scadutiN = 0;
 
         lista.forEach(c => {
             [c.f1ts, c.f2ts, c.f3ts].forEach(ts => {
                 if (!ts) return;
                 const d = new Date(ts); d.setHours(0,0,0,0);
                 if (d.getTime() === oggi.getTime()) oggiN++;
-                else if (d < oggi) oggiN++;
+                else if (d < oggi) scadutiN++;
                 else futN++;
             });
         });
 
-        document.getElementById('statTotale').textContent = lista.length;
-        document.getElementById('statOggi').textContent   = oggiN;
-        document.getElementById('statFuture').textContent = futN;
+        document.getElementById('statTotale').textContent  = lista.length;
+        document.getElementById('statOggi').textContent    = oggiN;
+        document.getElementById('statFuture').textContent  = futN;
+        document.getElementById('statScaduti').textContent = scadutiN;
     }
 
     /* ── Notifica banner ── */
@@ -932,7 +939,7 @@
             [c.f1ts, c.f2ts, c.f3ts].forEach((ts, idx) => {
                 if (!ts) return;
                 const d = new Date(ts); d.setHours(0,0,0,0);
-                if (d <= oggi) urgenti.push({ nome: c.nome, fu: `F${idx+1}` });
+                if (d.getTime() === oggi.getTime()) urgenti.push({ nome: c.nome, fu: `F${idx+1}` });
             });
         });
 
@@ -1195,7 +1202,9 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
     function inviaAGcal(id) {
         const lista = JSON.parse(localStorage.getItem('chiamate')) || [];
         const c = lista.find(x => x.id === id);
-        if (c) creaEventiCalendar(c);
+        if (!c) return;
+        if (c.gcalSent && !confirm('Già inviato a Google Calendar. Inviare di nuovo?')) return;
+        creaEventiCalendar(c, id);
     }
 
     function toggleGcalSettings() {
@@ -1211,7 +1220,7 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
         _initGis();
     }
 
-    async function creaEventiCalendar(chiamata) {
+    async function creaEventiCalendar(chiamata, calledId) {
         if (!_gcalToken || !_gapiReady) return;
         const { f1, f2, f3 } = calcolaFollowup(chiamata.appData, chiamata.appOra);
         const tz   = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -1240,6 +1249,11 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
                 if (e.status === 401) { _gcalToken = null; _updateGcalUI(false); break; }
                 console.error('GCal insert:', e);
             }
+        }
+        if (ok > 0 && calledId != null) {
+            const lista = JSON.parse(localStorage.getItem('chiamate')) || [];
+            const idx = lista.findIndex(x => x.id === calledId);
+            if (idx !== -1) { lista[idx].gcalSent = true; localStorage.setItem('chiamate', JSON.stringify(lista)); mostraDati(); }
         }
         const parts = [];
         if (ok > 0) parts.push(`${ok} event${ok > 1 ? 'i creati' : 'o creato'}`);
