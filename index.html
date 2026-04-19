@@ -1192,8 +1192,11 @@
         if (f2) jobs.push([`F2 ${chiamata.nome}`, f2]);
         if (f3) jobs.push([`F3 ${chiamata.nome}`, f3]);
 
+        const now = new Date();
+        const future = jobs.filter(([, dt]) => dt > now);
+        const skipped = jobs.length - future.length;
         let ok = 0;
-        for (const [s, dt] of jobs) {
+        for (const [s, dt] of future) {
             try {
                 await gapi.client.calendar.events.insert({ calendarId: 'primary', resource: mk(s, dt) });
                 ok++;
@@ -1202,7 +1205,10 @@
                 console.error('GCal insert:', e);
             }
         }
-        if (ok > 0) _gcalToast(`${ok} event${ok > 1 ? 'i creati' : 'o creato'} su Google Calendar`);
+        const parts = [];
+        if (ok > 0) parts.push(`${ok} event${ok > 1 ? 'i creati' : 'o creato'}`);
+        if (skipped > 0) parts.push(`${skipped} già passati — non inviati`);
+        if (parts.length > 0) _gcalToast(parts.join(' · '));
     }
 
     function _gcalToast(msg) {
