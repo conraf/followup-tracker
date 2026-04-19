@@ -530,7 +530,7 @@
     <!-- Header -->
     <header class="header" style="display:flex;align-items:center;justify-content:space-between;">
         <div>
-            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.04.19i</div>
+            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.04.19l</div>
             <h1>FOLLOWUP TRACKER</h1>
             <p class="header-sub">Gestione appuntamenti e promemoria follow-up</p>
         </div>
@@ -565,7 +565,7 @@
             <span id="gcalStatusText">Google Calendar — non connesso</span>
         </div>
         <button class="btn-gcal-action" id="gcalBtn" onclick="handleGcalAuth()" disabled>Connetti</button>
-        <button class="btn-gcal-gear" onclick="toggleGcalSettings()" title="Impostazioni Client ID">⚙️</button>
+        <button class="btn-gcal-gear" onclick="toggleGcalSettings()" title="Impostazioni Client ID" aria-label="Impostazioni Client ID">⚙️</button>
     </div>
     <div class="gcal-settings-panel" id="gcalSettingsPanel">
         <div class="section-label">Client ID Google OAuth2</div>
@@ -643,9 +643,9 @@
     <div class="table-card">
         <div class="table-head-row">
             <span class="section-label" style="margin:0;flex:1;">Log Chiamate</span>
-            <button class="btn-clear btn-clear-azure" onclick="esportaJSON()" style="margin-right:8px;" title="Esporta backup JSON">🗃️</button>
-            <button class="btn-clear btn-clear-azure" onclick="importaJSON()" style="margin-right:8px;" title="Importa backup JSON">📂</button>
-            <button class="btn-clear btn-clear-green" onclick="esportaCSV()" style="margin-right:8px;" title="Esporta CSV">📊</button>
+            <button class="btn-clear btn-clear-azure" onclick="esportaJSON()" style="margin-right:8px;" title="Esporta backup JSON" aria-label="Esporta backup JSON">🗃️</button>
+            <button class="btn-clear btn-clear-azure" onclick="importaJSON()" style="margin-right:8px;" title="Importa backup JSON" aria-label="Importa backup JSON">📂</button>
+            <button class="btn-clear btn-clear-green" onclick="esportaCSV()" style="margin-right:8px;" title="Esporta CSV" aria-label="Esporta CSV">📊</button>
             <button class="btn-clear" onclick="cancellatutte()">Cancella tutto</button>
             <input type="file" id="importaJSONInput" accept=".json" style="display:none" onchange="leggiJSON(event)">
         </div>
@@ -813,7 +813,7 @@
         const fmtDT   = d => d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
 
         const chiamata = {
-            id:        Date.now(),
+            id:        crypto.randomUUID(),
             data:      fmtData(ora_),
             nome,
             tel,
@@ -899,9 +899,9 @@
                     <td>${fmtBadge(c.f3label, c.f3ts)}</td>
                     <td>
                         <div class="row-actions">
-                            <button class="btn-gcal-row" onclick="inviaAGcal(${c.id})" title="${c.gcalSent ? 'Già inviato — clicca per inviare di nuovo' : 'Invia a Google Calendar'}" style="display:${_gcalToken ? '' : 'none'};opacity:${c.gcalSent ? '0.5' : '1'}">${c.gcalSent ? '✅' : '📅'}</button>
-                            <button class="btn-arch" onclick="archiviaChiamata(${c.id})" title="Archivia">🗂️</button>
-                            <button class="btn-del"  onclick="eliminaChiamata(${c.id})" title="Elimina">🗑️</button>
+                            <button class="btn-gcal-row" data-gcal-id="${c.id}" onclick="inviaAGcal('${c.id}')" title="${c.gcalSent ? 'Già inviato — clicca per inviare di nuovo' : 'Invia a Google Calendar'}" aria-label="${c.gcalSent ? 'Già inviato a Google Calendar' : 'Invia a Google Calendar'}" style="display:${_gcalToken ? '' : 'none'};opacity:${c.gcalSent ? '0.5' : '1'}">${c.gcalSent ? '✅' : '📅'}</button>
+                            <button class="btn-arch" onclick="archiviaChiamata('${c.id}')" title="Archivia" aria-label="Archivia">🗂️</button>
+                            <button class="btn-del"  onclick="eliminaChiamata('${c.id}')" title="Elimina" aria-label="Elimina">🗑️</button>
                         </div>
                     </td>`;
                 tbody.appendChild(row);
@@ -1032,8 +1032,8 @@
                 <td class="col-mono">${c.f3label || '—'}</td>
                 <td>
                     <div class="row-actions">
-                        <button class="btn-restore" onclick="ripristinaChiamata(${c.id})" title="Ripristina">↩</button>
-                        <button class="btn-del"     onclick="eliminaDaArchivio(${c.id})"  title="Elimina definitivamente">🗑️</button>
+                        <button class="btn-restore" onclick="ripristinaChiamata('${c.id}')" title="Ripristina" aria-label="Ripristina">↩</button>
+                        <button class="btn-del"     onclick="eliminaDaArchivio('${c.id}')"  title="Elimina definitivamente" aria-label="Elimina definitivamente">🗑️</button>
                     </div>
                 </td>`;
             tbody.appendChild(row);
@@ -1202,12 +1202,15 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
         document.querySelectorAll('.btn-gcal-row').forEach(b => b.style.display = connected ? '' : 'none');
     }
 
-    function inviaAGcal(id) {
+    async function inviaAGcal(id) {
         const lista = JSON.parse(localStorage.getItem('chiamate')) || [];
         const c = lista.find(x => x.id === id);
         if (!c) return;
         if (c.gcalSent && !confirm('Già inviato a Google Calendar. Inviare di nuovo?')) return;
-        creaEventiCalendar(c, id);
+        const btn = document.querySelector(`[data-gcal-id="${id}"]`);
+        if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+        await creaEventiCalendar(c, id);
+        mostraDati();
     }
 
     function toggleGcalSettings() {
