@@ -842,7 +842,7 @@
     /* ── Elimina ── */
     function eliminaChiamata(id) {
         let lista = JSON.parse(localStorage.getItem('chiamate')) || [];
-        lista = lista.filter(c => c.id !== id);
+        lista = lista.filter(c => c.id != id);
         localStorage.setItem('chiamate', JSON.stringify(lista));
         mostraDati();
         checkScadenzeOggi();
@@ -960,9 +960,9 @@
     function archiviaChiamata(id) {
         let lista    = JSON.parse(localStorage.getItem('chiamate'))         || [];
         let archivio = JSON.parse(localStorage.getItem('chiamate_archivio')) || [];
-        const c = lista.find(x => x.id === id);
+        const c = lista.find(x => x.id == id);
         if (!c) return;
-        lista    = lista.filter(x => x.id !== id);
+        lista    = lista.filter(x => x.id != id);
         archivio.push({ ...c, archiviato: new Date().toLocaleDateString('it-IT') });
         localStorage.setItem('chiamate',          JSON.stringify(lista));
         localStorage.setItem('chiamate_archivio', JSON.stringify(archivio));
@@ -974,9 +974,9 @@
     function ripristinaChiamata(id) {
         let archivio = JSON.parse(localStorage.getItem('chiamate_archivio')) || [];
         let lista    = JSON.parse(localStorage.getItem('chiamate'))           || [];
-        const c = archivio.find(x => x.id === id);
+        const c = archivio.find(x => x.id == id);
         if (!c) return;
-        archivio = archivio.filter(x => x.id !== id);
+        archivio = archivio.filter(x => x.id != id);
         const { archiviato, ...orig } = c;
         lista.push(orig);
         localStorage.setItem('chiamate',          JSON.stringify(lista));
@@ -988,7 +988,7 @@
 
     function eliminaDaArchivio(id) {
         let archivio = JSON.parse(localStorage.getItem('chiamate_archivio')) || [];
-        archivio = archivio.filter(x => x.id !== id);
+        archivio = archivio.filter(x => x.id != id);
         localStorage.setItem('chiamate_archivio', JSON.stringify(archivio));
         mostraStorico();
     }
@@ -1204,7 +1204,7 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
 
     async function inviaAGcal(id) {
         const lista = JSON.parse(localStorage.getItem('chiamate')) || [];
-        const c = lista.find(x => x.id === id);
+        const c = lista.find(x => x.id == id);
         if (!c) return;
         if (c.gcalSent && !confirm('Già inviato a Google Calendar. Inviare di nuovo?')) return;
         const btn = document.querySelector(`[data-gcal-id="${id}"]`);
@@ -1258,7 +1258,7 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
         }
         if (ok > 0 && calledId != null) {
             const lista = JSON.parse(localStorage.getItem('chiamate')) || [];
-            const idx = lista.findIndex(x => x.id === calledId);
+            const idx = lista.findIndex(x => x.id == calledId);
             if (idx !== -1) { lista[idx].gcalSent = true; localStorage.setItem('chiamate', JSON.stringify(lista)); mostraDati(); }
         }
         const parts = [];
