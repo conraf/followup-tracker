@@ -1048,8 +1048,9 @@
         const blob = new Blob([JSON.stringify(dati, null, 2)], { type: 'application/json' });
         const url  = URL.createObjectURL(blob);
         const a    = document.createElement('a');
-        const oggi = new Date().toISOString().slice(0, 10);
-        a.href = url; a.download = `followup-backup-${oggi}.json`;
+        const now = new Date();
+        const ts = now.toISOString().slice(0, 16).replace('T', '-').replace(':', '');
+        a.href = url; a.download = `followup-backup-${ts}.json`;
         a.click();
         URL.revokeObjectURL(url);
     }
@@ -1107,8 +1108,9 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
         const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
         const url  = URL.createObjectURL(blob);
         const a    = document.createElement('a');
-        const oggi = new Date().toISOString().slice(0, 10);
-        a.href = url; a.download = `followup-${oggi}.csv`;
+        const now = new Date();
+        const ts = now.toISOString().slice(0, 16).replace('T', '-').replace(':', '');
+        a.href = url; a.download = `followup-${ts}.csv`;
         a.click();
         URL.revokeObjectURL(url);
     }
