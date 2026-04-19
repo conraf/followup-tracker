@@ -526,7 +526,7 @@
     <!-- Header -->
     <header class="header" style="display:flex;align-items:center;justify-content:space-between;">
         <div>
-            <div class="header-tag">// Sales Operations Dashboard</div>
+            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.04.19f</div>
             <h1>FOLLOWUP TRACKER</h1>
             <p class="header-sub">Gestione appuntamenti e promemoria follow-up</p>
         </div>
@@ -573,7 +573,8 @@
             → crea un progetto → abilita <strong>Google Calendar API</strong>.<br>
             2. Credenziali → Crea credenziale → <em>ID client OAuth 2.0</em> (tipo <em>Applicazione web</em>).<br>
             3. In <em>Origini JavaScript autorizzate</em> aggiungi: <code id="gcalOriginHint">questo URL</code><br>
-            4. Incolla il Client ID qui sopra e clicca Salva, poi clicca Connetti.
+            4. Incolla il Client ID qui sopra e clicca Salva, poi clicca Connetti.<br>
+            5. Nella versione attuale il Client ID è già incorporato nel codice HTML.
         </p>
     </div>
 
@@ -685,6 +686,39 @@
             <div class="storico-clear">
                 <button onclick="svuotaArchivio()">Svuota archivio</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Footer guida rapida -->
+    <div style="margin-top:32px;border-top:1px solid var(--border);padding-top:12px;">
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.gr-arrow').textContent=this.nextElementSibling.style.display==='none'?'▼':'▲';"
+            style="background:none;border:none;color:var(--text-muted);font-family:var(--font-mono);font-size:12px;letter-spacing:0.15em;cursor:pointer;padding:0;display:flex;align-items:center;gap:8px;">
+            // GUIDA RAPIDA <span class="gr-arrow">▼</span>
+        </button>
+        <div style="display:none;margin-top:16px;color:var(--text-muted);font-size:13px;line-height:1.75;">
+            <p style="margin:0 0 12px;"><strong style="color:var(--text);">Google Calendar</strong><br>
+            Alla prima apertura, connettiti con il pulsante <strong>Connetti Google Calendar</strong>. La connessione dura circa 1 ora: se scade, riconnettiti prima di aggiungere nuove chiamate. Il box GCal mostra un bordo <span style="color:var(--orange);">arancione</span> quando sei disconnesso, <span style="color:#22c55e;">verde</span> quando sei connesso.</p>
+
+
+<p style="margin:0 0 12px;"><strong style="color:var(--text);">Registrare una chiamata</strong><br>
+            Compila i campi Nome, Telefono (opzionale), Data appuntamento e Ora appuntamento, poi clicca <strong>Aggiungi</strong>. La chiamata viene salvata e i tre promemoria (F1, F2, F3) vengono calcolati automaticamente e inviati a Google Calendar.</p>
+
+            <p style="margin:0 0 12px;"><strong style="color:var(--text);">Promemoria automatici</strong><br>
+            <strong>F1</strong> — 3 giorni prima, ore 07:00 &nbsp;·&nbsp; <strong>F2</strong> — 1 giorno prima, ore 16:00 &nbsp;·&nbsp; <strong>F3</strong> — 1 ora prima</p>
+
+            <p style="margin:0 0 12px;"><strong style="color:var(--text);">Invio manuale a Calendar</strong><br>
+            Per le chiamate inserite mentre eri disconnesso, usa il tasto 📅&nbsp; sulla riga. Gli eventi già passati vengono ignorati automaticamente.</p>
+
+            <p style="margin:0 0 12px;"><strong style="color:var(--text);">Archiviazione</strong><br>
+            Il tasto 🗂️ archivia una chiamata (non la elimina). Le chiamate archiviate sono visibili nel <strong>Storico ▼</strong>.</p>
+
+            <p style="margin:0 0 12px;"><strong style="color:var(--text);">Backup e ripristino</strong><br>
+            🗃️&nbsp; <strong>Esporta JSON</strong> — salva tutti i dati (utile su nuovo browser/dispositivo)<br>
+            📂&nbsp; <strong>Importa JSON</strong> — ripristina i dati; aggiunge solo le voci mancanti<br>
+            📊&nbsp; <strong>Esporta CSV</strong> — apri in Excel o LibreOffice per analisi e report</p>
+
+            <p style="margin:0;"><strong style="color:var(--text);">Eliminazione</strong><br>
+            Il tasto 🗑️ elimina definitivamente una chiamata. <span style="color:#ef4444;">Cancella tutto</span> svuota l'intera lista attiva.</p>
         </div>
     </div>
 
