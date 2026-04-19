@@ -819,7 +819,7 @@
     function fmtBadge(label, ts) {
         if (!label || label === '—') return `<span class="fu-badge fu-future" style="opacity:.4">—</span>`;
         const s = getStatus(ts);
-        const icon = s === 'today' ? '🔔 ' : s === 'overdue' ? '⚠ ' : '';
+        const icon = s === 'today' ? '🔔 ' : s === 'overdue' ? '⚠️ ' : '';
         return `<span class="fu-badge fu-${s}"><span class="dot dot-${s}"></span>${icon}${label}</span>`;
     }
 
