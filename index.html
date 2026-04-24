@@ -210,6 +210,10 @@
         .fp-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 3px; }
         .fp-value { font-family: var(--font-mono); font-size: 12px; color: var(--azure); }
         .fp-value.empty { color: var(--text-muted); font-style: italic; font-family: var(--font-body); font-size: 11px; }
+        .fp-item.selectable { cursor: pointer; transition: border-color 0.2s, opacity 0.2s; }
+        .fp-item.selectable:hover:not(.deselected) { border-color: rgba(239,68,68,0.35); }
+        .fp-item.deselected { border-color: var(--danger); opacity: 0.5; }
+        .fp-item.deselected .fp-value { text-decoration: line-through; color: var(--danger); }
 
         .btn-primary {
             background: var(--orange);
@@ -530,7 +534,7 @@
     <!-- Header -->
     <header class="header" style="display:flex;align-items:center;justify-content:space-between;">
         <div>
-            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.04.19m</div>
+            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.04.24a</div>
             <h1>FOLLOWUP TRACKER</h1>
             <p class="header-sub">Gestione appuntamenti e promemoria follow-up</p>
         </div>
@@ -624,15 +628,15 @@
 
         <!-- Anteprima followup calcolati -->
         <div class="followup-preview">
-            <div class="fp-item">
+            <div class="fp-item" id="fpItem1" onclick="toggleFollowup(1)">
                 <div class="fp-label">Followup 1 &nbsp;(−3 gg)</div>
                 <div class="fp-value empty" id="prev1">— scegli data appuntamento</div>
             </div>
-            <div class="fp-item">
+            <div class="fp-item" id="fpItem2" onclick="toggleFollowup(2)">
                 <div class="fp-label">Followup 2 &nbsp;(−1 gg)</div>
                 <div class="fp-value empty" id="prev2">—</div>
             </div>
-            <div class="fp-item">
+            <div class="fp-item" id="fpItem3" onclick="toggleFollowup(3)">
                 <div class="fp-label">Followup 3 &nbsp;(−1 h)</div>
                 <div class="fp-value empty" id="prev3">— scegli anche l'ora</div>
             </div>
@@ -780,12 +784,37 @@
         setPreview('prev1', fmtData(f1), '— scegli data appuntamento');
         setPreview('prev2', fmtData(f2), '—');
         setPreview('prev3', fmtDT(f3),   '— scegli anche l\'ora');
+
+        _updateFpSelectable('fpItem1', !!f1, 'f1');
+        _updateFpSelectable('fpItem2', !!f2, 'f2');
+        _updateFpSelectable('fpItem3', !!f3, 'f3');
     }
 
     function setPreview(id, val, placeholder) {
         const el = document.getElementById(id);
         if (val) { el.textContent = val; el.className = 'fp-value'; }
         else      { el.textContent = placeholder; el.className = 'fp-value empty'; }
+    }
+
+    function _updateFpSelectable(itemId, hasValue, key) {
+        const item = document.getElementById(itemId);
+        if (hasValue) {
+            item.classList.add('selectable');
+            if (!item.classList.contains('deselected')) item.title = 'Clicca per escludere';
+        } else {
+            item.classList.remove('selectable', 'deselected');
+            item.title = '';
+            _fSelected[key] = true;
+        }
+    }
+
+    function toggleFollowup(n) {
+        const key  = `f${n}`;
+        const item = document.getElementById(`fpItem${n}`);
+        if (!item.classList.contains('selectable')) return;
+        _fSelected[key] = !_fSelected[key];
+        item.classList.toggle('deselected', !_fSelected[key]);
+        item.title = _fSelected[key] ? 'Clicca per escludere' : 'Clicca per includere';
     }
 
     /* ── Aggiungi chiamata ── */
@@ -820,12 +849,12 @@
             appData:   giorno,
             appOra:    ora,
             appLabel:  giorno ? (ora ? new Date(giorno+'T'+ora).toLocaleDateString('it-IT', {day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + ora : new Date(giorno+'T00:00').toLocaleDateString('it-IT', {day:'2-digit',month:'2-digit',year:'numeric'})) : '—',
-            f1ts:      f1 ? f1.getTime() : null,
-            f2ts:      f2 ? f2.getTime() : null,
-            f3ts:      f3 ? f3.getTime() : null,
-            f1label:   f1 ? fmtData(f1) : '—',
-            f2label:   f2 ? fmtData(f2) : '—',
-            f3label:   f3 ? fmtDT(f3)   : '—',
+            f1ts:      (_fSelected.f1 && f1) ? f1.getTime() : null,
+            f2ts:      (_fSelected.f2 && f2) ? f2.getTime() : null,
+            f3ts:      (_fSelected.f3 && f3) ? f3.getTime() : null,
+            f1label:   (_fSelected.f1 && f1) ? fmtData(f1) : '—',
+            f2label:   (_fSelected.f2 && f2) ? fmtData(f2) : '—',
+            f3label:   (_fSelected.f3 && f3) ? fmtDT(f3)   : '—',
         };
 
         const lista = JSON.parse(localStorage.getItem('chiamate')) || [];
@@ -833,6 +862,8 @@
         localStorage.setItem('chiamate', JSON.stringify(lista));
 
         nomeEl.value = ''; telEl.value = ''; giornoEl.value = ''; oraEl.value = '';
+        _fSelected.f1 = _fSelected.f2 = _fSelected.f3 = true;
+        ['fpItem1','fpItem2','fpItem3'].forEach(id => document.getElementById(id).classList.remove('selectable','deselected'));
         aggiornaPreviews();
         mostraDati();
         checkScadenzeOggi();
@@ -1125,6 +1156,8 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
     const GCAL_DISCOVERY = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
     const GCAL_CLIENT_ID = '1004381119202-kks1o6ujt7su4353u7kahet663ssatqf.apps.googleusercontent.com';
 
+    const _fSelected = { f1: true, f2: true, f3: true };
+
     let _gapiReady   = false;
     let _gisReady    = false;
     let _tokenClient = null;
@@ -1242,9 +1275,9 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
             reminders: { useDefault: true },
         });
         const jobs = [];
-        if (f1) jobs.push([`F1 ${chiamata.nome}`, f1]);
-        if (f2) jobs.push([`F2 ${chiamata.nome}`, f2]);
-        if (f3) jobs.push([`F3 ${chiamata.nome}`, f3]);
+        if (f1 && chiamata.f1ts) jobs.push([`F1 ${chiamata.nome}`, f1]);
+        if (f2 && chiamata.f2ts) jobs.push([`F2 ${chiamata.nome}`, f2]);
+        if (f3 && chiamata.f3ts) jobs.push([`F3 ${chiamata.nome}`, f3]);
 
         const now = new Date();
         const future = jobs.filter(([, dt]) => dt > now);

@@ -1,0 +1,225 @@
+MEMO TECNICO — Refactor FollowUp Tracker: da localStorage a Google Sheets
+Per: Claude Opus 4.7
+Da: Claude Sonnet 4.6
+Data: 2026-04-19
+
+════════════════════════════════════════════════════════════════
+1. CONTESTO E OBIETTIVO
+════════════════════════════════════════════════════════════════
+
+FollowUp Tracker è una webapp single-page usata da un venditore per
+registrare chiamate commerciali e gestire i promemoria di follow-up
+(F1/F2/F3) sincronizzati con Google Calendar. L'app funziona bene in
+uso individuale e ora si vuole estendere ad un team di venditori.
+
+Il problema principale per l'adozione di team è che i dati vivono
+esclusivamente in localStorage — isolati per browser, nessuna
+visibilità centrale, nessun sync tra dispositivi. L'obiettivo del
+refactor è sostituire localStorage con Google Sheets come layer di
+persistenza, sfruttando l'infrastruttura Google già presente (OAuth2
+è già implementato per Google Calendar).
+
+════════════════════════════════════════════════════════════════
+2. STATO ATTUALE DELL'APP
+════════════════════════════════════════════════════════════════
+
+File: index.html (~1295 righe, monolite HTML+CSS+JS inline)
+Deploy: GitHub Pages — https://conraf.github.io/followup-tracker/
+Versione attuale: v26.04.19m
+
+STRUTTURA DATI (localStorage)
+------------------------------
+Due chiavi:
+
+  'chiamate' — array JSON di oggetti chiamata attiva:
+  {
+    id:       string (UUID) o number (legacy, pre-v26.04.19l),
+    data:     string "DD/MM/YYYY" (data registrazione),
+    nome:     string,
+    tel:      string (opzionale),
+    appData:  string "YYYY-MM-DD" (data appuntamento),
+    appOra:   string "HH:MM" (ora appuntamento),
+    appLabel: string (label formattata per UI),
+    f1ts:     number|null (timestamp ms followup F1),
+    f2ts:     number|null (timestamp ms followup F2),
+    f3ts:     number|null (timestamp ms followup F3),
+    f1label:  string (label formattata F1),
+    f2label:  string (label formattata F2),
+    f3label:  string (label formattata F3),
+    gcalSent: boolean (true se già inviato a GCal),
+    archiviato: string (presente solo in chiamate_archivio)
+  }
+
+  'chiamate_archivio' — stesso schema, con campo aggiuntivo
+  'archiviato': string "DD/MM/YYYY" (data archiviazione)
+
+  'gcal_client_id' — string (OAuth2 Client ID, opzionale:
+  se assente usa il Client ID hardcoded nel codice)
+
+LOGICA DI BUSINESS
+------------------
+- aggiungiChiamata(): crea record, salva in localStorage, chiama
+  creaEventiCalendar() per push automatico a GCal
+- calcolaFollowup(appData, appOra): calcola F1 (app-3gg ore 07:00),
+  F2 (app-1gg ore 16:00), F3 (app-1h prima)
+- mostraDati(): legge localStorage, ri-renderizza tutta la tabella
+- aggiornaStats(): conta oggi/futuri/scaduti da f1ts/f2ts/f3ts
+- checkScadenzeOggi(): mostra banner notifica se ci sono F* oggi
+- archiviaChiamata(id): sposta da 'chiamate' a 'chiamate_archivio'
+- ripristinaChiamata(id): operazione inversa
+- eliminaChiamata(id) / eliminaDaArchivio(id): rimozione definitiva
+- esportaJSON() / importaJSON(): backup/ripristino file locale
+- esportaCSV(): export per Excel/LibreOffice
+
+AUTENTICAZIONE GOOGLE (già presente)
+-------------------------------------
+Librerie caricate: Google Identity Services (GIS) + GAPI
+Scope attuale: https://www.googleapis.com/auth/calendar
+
+Flusso:
+1. _initGis() — inizializza GIS con Client ID
+2. connectGcal() — apre popup OAuth, ottiene access token
+3. _gcalToken — variabile in memoria con il token (dura ~1h)
+4. _gapiReady — flag che indica se gapi.client è inizializzato
+5. creaEventiCalendar() — usa gapi.client.calendar.events.insert()
+
+Il token OAuth viene ottenuto in modalità implicit grant (tokenClient
+con callback), non con authorization code flow. Non c'è refresh token.
+
+════════════════════════════════════════════════════════════════
+3. ARCHITETTURA TARGET
+════════════════════════════════════════════════════════════════
+
+SCENARIO D'USO
+--------------
+- N venditori (stimato 5-15), ognuno con account Google aziendale
+- 1 Google Sheet condiviso, con un foglio (tab) per venditore
+- Il manager ha accesso in lettura al file Google Sheet
+- L'app rimane statica (GitHub Pages), nessun backend server
+- Ogni venditore si autentica con il proprio account Google
+
+STRUTTURA GOOGLE SHEET TARGET
+------------------------------
+Un file Google Sheet con:
+- Un foglio per venditore, nominato con il nome/email del venditore
+- Un foglio "Archivio_<nome>" per le chiamate archiviate
+- Oppure, alternativa più semplice: un foglio "Attive" e uno
+  "Archivio" con colonna "Venditore" per filtrare
+
+Intestazioni suggerite per ogni foglio (mappano 1:1 sullo schema):
+id | data | nome | tel | appData | appOra | appLabel |
+f1ts | f2ts | f3ts | f1label | f2label | f3label | gcalSent
+
+SCOPE OAUTH DA AGGIUNGERE
+--------------------------
+Attuale:  https://www.googleapis.com/auth/calendar
+Target:   https://www.googleapis.com/auth/calendar
+          https://www.googleapis.com/auth/spreadsheets
+
+Il venditore autorizza entrambi con un solo click "Connetti".
+
+════════════════════════════════════════════════════════════════
+4. COSA CAMBIA NEL CODICE
+════════════════════════════════════════════════════════════════
+
+OPERAZIONI DA RIMAPPARE
+-----------------------
+Ogni operazione che oggi legge/scrive localStorage va sostituita
+con una chiamata alle Sheets API. Mappa completa:
+
+  localStorage.getItem('chiamate')
+  → sheets.spreadsheets.values.get(sheetId, range)
+
+  localStorage.setItem('chiamate', JSON.stringify(lista))
+  → sheets.spreadsheets.values.update() o batchUpdate()
+
+  Aggiunta singola riga (aggiungiChiamata)
+  → sheets.spreadsheets.values.append()
+
+  Eliminazione riga (eliminaChiamata, eliminaDaArchivio)
+  → sheets.spreadsheets.batchUpdate() con DeleteDimensionRequest
+
+  Aggiornamento campo singolo (gcalSent=true)
+  → sheets.spreadsheets.values.update() sulla cella specifica
+
+CONSIDERAZIONI ARCHITETTURALI
+------------------------------
+1. ASYNC OVUNQUE: oggi mostraDati(), aggiungiChiamata() ecc. sono
+   sincrone (localStorage è sincrono). Con Sheets API tutto diventa
+   asincrono. Ogni funzione che tocca dati diventa async/await.
+   È il cambiamento più pervasivo.
+
+2. IDENTIFICAZIONE FOGLIO: l'app deve sapere quale foglio usare per
+   l'utente corrente. Due opzioni:
+   a) Chiedere il Spreadsheet ID al primo avvio (come oggi si chiede
+      il Client ID) e salvarlo in localStorage
+   b) Creare automaticamente il foglio dell'utente se non esiste
+
+3. IDENTIFICAZIONE RIGA: oggi si cerca per id con lista.find().
+   Con Sheets, per eliminare/aggiornare una riga bisogna conoscere
+   il suo indice numerico nel foglio. Servono due approcci:
+   a) Leggere tutto il foglio in memoria, trovare la riga per id,
+      ricavare l'indice, poi operare sull'indice
+   b) Usare id come chiave di ricerca ogni volta (più chiamate API)
+
+4. RATE LIMITS: Sheets API ha limiti di 60 request/minuto per utente.
+   Con uso normale (un venditore, poche operazioni) non è un problema.
+   Con team grande o operazioni batch (import JSON) potrebbe esserlo.
+
+5. LATENZA: ogni operazione avrà 200-800ms di latenza vs ~0ms di
+   localStorage. L'UI deve riflettere stati di caricamento (già
+   parzialmente implementato per GCal, da estendere).
+
+6. OFFLINE: con Sheets come unico storage, offline = app non
+   funzionante. Valutare se mantenere localStorage come cache locale
+   con sync periodico verso Sheets (architettura più complessa).
+
+7. PRIMO AVVIO / MIGRAZIONE: i venditori esistenti hanno già dati
+   in localStorage. Serve una procedura di migrazione one-time
+   (leggi da localStorage → scrivi su Sheet → conferma → svuota
+   localStorage).
+
+════════════════════════════════════════════════════════════════
+5. VINCOLI E DECISIONI APERTE
+════════════════════════════════════════════════════════════════
+
+VINCOLI FISSI
+-------------
+- L'app rimane un file HTML singolo su GitHub Pages (no backend)
+- L'autenticazione rimane client-side OAuth2 (no server-side flow)
+- Il Client ID Google è già configurato e hardcoded; va aggiunto
+  lo scope Sheets alle Origini autorizzate nella Google Cloud Console
+- Si vuole mantenere la compatibilità con i dati localStorage
+  esistenti (migrazione, non rottura)
+
+DECISIONI DA PRENDERE
+---------------------
+A) Struttura Sheet: un foglio per venditore vs colonna "Venditore"
+   in un foglio unico. La prima è più semplice da implementare e
+   da leggere per il manager; la seconda è più facile da interrogare.
+
+B) Cache locale: mantenere localStorage come cache (con sync) oppure
+   eliminarlo completamente in favore di Sheets puro?
+   Trade-off: resilienza offline vs complessità di sync.
+
+C) Gestione token scaduto: il token OAuth dura ~1h. Con Sheets come
+   storage primario, una scadenza silenziosa durante l'uso blocca
+   i salvataggi. Serve gestione proattiva (timer su expires_in).
+
+D) ID foglio: hardcoded, configurabile dall'utente, o auto-discovery
+   tramite Drive API (cerca file con nome convenzionale)?
+
+════════════════════════════════════════════════════════════════
+6. COSA NON CAMBIA
+════════════════════════════════════════════════════════════════
+
+- Tutta la logica di calcolo F1/F2/F3 (calcolaFollowup)
+- Tutta la logica di invio a Google Calendar (creaEventiCalendar)
+- UI, CSS, layout — nessuna modifica visiva prevista
+- Export CSV (legge i dati in memoria, non da storage)
+- Export JSON (potrebbe essere mantenuto come backup secondario)
+- Logica di autenticazione GIS/GAPI (si estende, non si riscrive)
+
+════════════════════════════════════════════════════════════════
+FIN DEL MEMO
+════════════════════════════════════════════════════════════════
