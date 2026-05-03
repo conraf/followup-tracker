@@ -1038,7 +1038,7 @@
     }
 
     /* ── Aggiungi chiamata ── */
-    function aggiungiChiamata() {
+    function aggiungiChiamata(skipGcal) {
         const nomeEl  = document.getElementById('nome');
         const telEl   = document.getElementById('telefono');
         const giornoEl = document.getElementById('giornoApp');
@@ -1087,13 +1087,13 @@
         aggiornaPreviews();
         mostraDati();
         checkScadenzeOggi();
-        creaEventiCalendar(chiamata);
+        if (!skipGcal) creaEventiCalendar(chiamata);
         return chiamata.id;
     }
 
     function registraConValutazione() {
-        const id = aggiungiChiamata();
-        if (id) apriScorer(id);
+        const id = aggiungiChiamata(true);
+        if (id) { _scorer.pushGcal = true; apriScorer(id); }
     }
 
     /* ── Elimina ── */
@@ -1656,7 +1656,7 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
         rosso:  { lettera: 'F', titolo: 'Lascia Perdere',      desc: 'Le bandiere rosse si sono accumulate. Il tuo tempo vale più di questo drama. Passa oltre — e libera spazio per un\'opportunità migliore.' },
     };
 
-    let _scorer = { clienteId: null, risposte: [], step: 0 };
+    let _scorer = { clienteId: null, risposte: [], step: 0, pushGcal: false };
 
     function getScorerFascia(score) {
         if (score <= 10) return 'verde';
@@ -1839,9 +1839,18 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
             }
         }
 
+        const shouldPushGcal = _scorer.pushGcal;
+        const savedId        = _scorer.clienteId;
+
         chiudiScorer();
         mostraDati();
         mostraStorico();
+
+        if (shouldPushGcal) {
+            const listaAggiornata = JSON.parse(localStorage.getItem('chiamate')) || [];
+            const c = listaAggiornata.find(x => x.id == savedId);
+            if (c) creaEventiCalendar(c, savedId);
+        }
     }
 
     document.addEventListener('keydown', e => {
