@@ -30,6 +30,8 @@
             --text-dim:     #94a3b8;
             --danger:       #ef4444;
             --danger-dim:   rgba(239,68,68,0.10);
+            --scorer-green:  #22c55e;
+            --scorer-yellow: #f59e0b;
             --font-display: 'Bebas Neue', sans-serif;
             --font-body:    'Outfit', sans-serif;
             --font-mono:    'JetBrains Mono', monospace;
@@ -526,6 +528,150 @@
             transition: all .18s;
         }
         .btn-gcal-row:hover { border-color: rgba(34,197,94,.4); color: #22c55e; background: rgba(34,197,94,.08); }
+
+        /* ── Client Scorer ── */
+        #scorerOverlay {
+            position: fixed; inset: 0;
+            background: rgba(6,14,26,0.92);
+            display: none; align-items: center; justify-content: center;
+            z-index: 9999; padding: 16px;
+        }
+        .scorer-panel {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 16px; width: 100%; max-width: 560px;
+            max-height: 90vh; overflow-y: auto; position: relative;
+            animation: fadeUp 0.3s ease both;
+        }
+        #scorerCloseBtn {
+            position: absolute; top: 12px; right: 14px;
+            background: none; border: none; color: var(--text-muted);
+            font-size: 20px; cursor: pointer; padding: 4px 8px;
+            border-radius: 6px; line-height: 1; z-index: 1; transition: color .15s;
+        }
+        #scorerCloseBtn:hover { color: var(--text); }
+        .scorer-header { padding: 24px 24px 16px; border-bottom: 1px solid var(--border); }
+        .scorer-progress-track {
+            height: 3px; background: var(--elevated); border-radius: 2px;
+            overflow: hidden; margin-bottom: 8px;
+        }
+        .scorer-progress-fill {
+            height: 100%; background: var(--primary); border-radius: 2px;
+            transition: width 0.4s ease; width: 0%;
+        }
+        .scorer-progress-label {
+            font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);
+            display: flex; justify-content: space-between; letter-spacing: 0.05em;
+        }
+        .scorer-body { padding: 24px 24px 0; }
+        .scorer-question-meta {
+            font-family: var(--font-mono); font-size: 10px; color: var(--azure);
+            letter-spacing: 0.20em; text-transform: uppercase; margin-bottom: 10px;
+        }
+        .scorer-question-text {
+            font-family: var(--font-display); font-size: 24px;
+            line-height: 1.2; color: var(--text); margin-bottom: 18px;
+        }
+        .scorer-tip {
+            background: rgba(56,189,248,0.06); border: 1px solid rgba(56,189,248,0.18);
+            border-radius: 8px; padding: 10px 14px; font-size: 12px;
+            color: var(--text-muted); margin-bottom: 16px; line-height: 1.55;
+        }
+        .scorer-options { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .scorer-option {
+            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; cursor: pointer;
+            transition: border-color 0.2s, background 0.2s; user-select: none;
+        }
+        .scorer-option:hover { border-color: rgba(56,189,248,0.30); background: var(--elevated); }
+        .scorer-option.selected { border-color: var(--primary); background: rgba(37,99,235,0.12); }
+        .scorer-option-radio {
+            width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border);
+            flex-shrink: 0; transition: border-color 0.2s, background 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .scorer-option.selected .scorer-option-radio { border-color: var(--primary); background: var(--primary); }
+        .scorer-option.selected .scorer-option-radio::after {
+            content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fff; display: block;
+        }
+        .scorer-option-text { font-size: 14px; color: var(--text-dim); line-height: 1.4; }
+        .scorer-option.selected .scorer-option-text { color: var(--text); }
+        .scorer-footer {
+            padding: 16px 24px; display: flex; gap: 10px;
+            border-top: 1px solid var(--border); margin-top: 20px;
+        }
+        #scorerBtnBack {
+            background: none; border: 1px solid var(--border); color: var(--text-muted);
+            border-radius: 8px; padding: 10px 16px; font-family: var(--font-body);
+            font-size: 14px; cursor: pointer; transition: all .2s; white-space: nowrap;
+        }
+        #scorerBtnBack:hover { border-color: var(--azure); color: var(--azure); }
+        #scorerBtnBack:disabled { opacity: 0.3; pointer-events: none; }
+        #scorerBtnNext {
+            flex: 1; background: var(--primary); border: none; color: #fff;
+            border-radius: 8px; padding: 10px 16px; font-family: var(--font-body);
+            font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .2s;
+        }
+        #scorerBtnNext:disabled { opacity: 0.35; cursor: default; }
+        #scorerBtnNext:not(:disabled):hover { opacity: 0.88; }
+        /* Risultato */
+        .scorer-result { padding: 32px 24px 24px; text-align: center; }
+        .scorer-result-circle {
+            width: 96px; height: 96px; border-radius: 50%; border: 3px solid;
+            margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-display); font-size: 48px; line-height: 1;
+        }
+        .scorer-result-circle.verde  { border-color: var(--scorer-green);  background: rgba(34,197,94,0.12);  color: var(--scorer-green); }
+        .scorer-result-circle.giallo { border-color: var(--scorer-yellow); background: rgba(245,158,11,0.12); color: var(--scorer-yellow); }
+        .scorer-result-circle.rosso  { border-color: var(--danger);        background: var(--danger-dim);     color: var(--danger); }
+        .scorer-result-title { font-family: var(--font-display); font-size: 30px; letter-spacing: 0.04em; margin-bottom: 8px; }
+        .scorer-result-title.verde  { color: var(--scorer-green); }
+        .scorer-result-title.giallo { color: var(--scorer-yellow); }
+        .scorer-result-title.rosso  { color: var(--danger); }
+        .scorer-result-desc { font-size: 13px; color: var(--text-muted); line-height: 1.65; max-width: 380px; margin: 0 auto 16px; }
+        .scorer-result-score {
+            display: inline-block; font-family: var(--font-mono); font-size: 12px;
+            color: var(--text-dim); background: var(--elevated); border: 1px solid var(--border);
+            border-radius: 20px; padding: 4px 14px; margin-bottom: 20px;
+        }
+        .scorer-breakdown { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; text-align: left; }
+        .scorer-breakdown-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+        .scorer-breakdown-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .scorer-breakdown-row:last-child { margin-bottom: 0; }
+        .scorer-breakdown-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .scorer-breakdown-name { font-size: 12px; color: var(--text-dim); flex: 0 0 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .scorer-breakdown-bar-wrap { flex: 1; background: var(--elevated); border-radius: 2px; height: 5px; overflow: hidden; }
+        .scorer-breakdown-bar { height: 100%; border-radius: 2px; transition: width 0.6s ease; width: 0%; }
+        .scorer-result-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: center; }
+        #scorerBtnRifai {
+            background: none; border: 1px solid var(--border); color: var(--text-muted);
+            border-radius: 8px; padding: 10px 18px; font-family: var(--font-body);
+            font-size: 14px; cursor: pointer; transition: all .2s;
+        }
+        #scorerBtnRifai:hover { border-color: var(--azure); color: var(--azure); }
+        #scorerBtnSalva {
+            background: var(--primary); border: none; color: #fff;
+            border-radius: 8px; padding: 10px 22px; font-family: var(--font-body);
+            font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .2s;
+        }
+        #scorerBtnSalva:hover { opacity: 0.88; }
+        /* Badge nella tabella */
+        .scorer-badge {
+            display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;
+            padding: 3px 8px; font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+            cursor: pointer; border: 1px solid; transition: opacity .2s; white-space: nowrap;
+        }
+        .scorer-badge:hover { opacity: 0.75; }
+        .scorer-badge.verde  { background: rgba(34,197,94,0.10);  border-color: rgba(34,197,94,0.30);  color: var(--scorer-green); }
+        .scorer-badge.giallo { background: rgba(245,158,11,0.10); border-color: rgba(245,158,11,0.30); color: var(--scorer-yellow); }
+        .scorer-badge.rosso  { background: var(--danger-dim);     border-color: rgba(239,68,68,0.30);  color: var(--danger); }
+        .btn-scorer {
+            font-family: var(--font-mono); font-size: 11px; background: none;
+            border: 1px solid var(--border); color: var(--text-muted);
+            border-radius: 6px; padding: 3px 8px; cursor: pointer;
+            transition: all .2s; white-space: nowrap;
+        }
+        .btn-scorer:hover { border-color: var(--azure); color: var(--azure); }
     </style>
 </head>
 <body>
@@ -534,9 +680,9 @@
     <!-- Header -->
     <header class="header" style="display:flex;align-items:center;justify-content:space-between;">
         <div>
-            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.04.24a</div>
+            <div class="header-tag">// Sales Operations Dashboard &nbsp;·&nbsp; v26.05.03a</div>
             <h1>FOLLOWUP TRACKER</h1>
-            <p class="header-sub">Gestione appuntamenti e promemoria follow-up</p>
+            <p class="header-sub">Gestione appuntamenti e promemoria follow-up. Ora con Client Scorer opzionale.</p>
         </div>
         <img src="fut-icon.png" alt="" style="width:72px;height:72px;border-radius:14px;opacity:0.85;flex-shrink:0;">
     </header>
@@ -664,6 +810,7 @@
                         <th>Followup 1 &nbsp;−3gg</th>
                         <th>Followup 2 &nbsp;−1gg</th>
                         <th>Followup 3 &nbsp;−1h</th>
+                        <th>Score</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -690,6 +837,7 @@
                             <th>F1</th>
                             <th>F2</th>
                             <th>F3</th>
+                            <th>Score</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -732,8 +880,60 @@
             📂&nbsp; <strong>Importa JSON</strong> — ripristina i dati; aggiunge solo le voci mancanti<br>
             📊&nbsp; <strong>Esporta CSV</strong> — apri in Excel o LibreOffice per analisi e report</p>
 
-            <p style="margin:0;"><strong style="color:var(--text);">Eliminazione</strong><br>
+            <p style="margin:0 0 12px;"><strong style="color:var(--text);">Eliminazione</strong><br>
             Il tasto 🗑️ elimina definitivamente una chiamata. <span style="color:#ef4444;">Cancella tutto</span> svuota l'intera lista attiva.</p>
+
+            <p style="margin:0;"><strong style="color:var(--text);">Client Scorer (⚖️)</strong><br>
+            Ogni riga del log (e dello storico) ha un pulsante ⚖️ che apre il <strong>Client Scorer</strong>: un quiz opzionale da 10 domande per valutare il rischio/opportunità del potenziale cliente dopo la chiamata.<br>
+            Le 10 categorie valutate sono: Scoperta · Chiarezza Progetto · Segnali di Valore · Tempistiche · Budget · Contratto · Comunicazione · Revisioni · Termini di Pagamento · Istinto.<br>
+            Il punteggio finale (0–30) produce una di tre valutazioni: <span style="color:var(--scorer-green);">■ Cliente Ideale</span> (0–10), <span style="color:var(--scorer-yellow);">■ Procedi con Cautela</span> (11–20), <span style="color:var(--danger);">■ Lascia Perdere</span> (21–30).<br>
+            Una volta salvata, la valutazione appare come badge colorato sulla riga e viene inclusa automaticamente nella descrizione degli eventi inviati a Google Calendar.</p>
+        </div>
+    </div>
+
+    <!-- Client Scorer Overlay -->
+    <div id="scorerOverlay" onclick="if(event.target===this)chiudiScorer()">
+        <div class="scorer-panel">
+            <button id="scorerCloseBtn" onclick="chiudiScorer()" aria-label="Chiudi">✕</button>
+            <!-- View quiz -->
+            <div id="scorerQuizView">
+                <div class="scorer-header">
+                    <div class="scorer-progress-track">
+                        <div class="scorer-progress-fill" id="scorerProgressFill"></div>
+                    </div>
+                    <div class="scorer-progress-label">
+                        <span id="scorerProgressText"></span>
+                        <span id="scorerProgressPct"></span>
+                    </div>
+                </div>
+                <div class="scorer-body">
+                    <div class="scorer-question-meta" id="scorerMeta"></div>
+                    <div class="scorer-question-text" id="scorerQuestion"></div>
+                    <div class="scorer-tip" id="scorerTip"></div>
+                    <ul class="scorer-options" id="scorerOptions"></ul>
+                </div>
+                <div class="scorer-footer">
+                    <button id="scorerBtnBack" onclick="tornaScorer()">← Indietro</button>
+                    <button id="scorerBtnNext" onclick="avanzaScorer()" disabled>Avanti →</button>
+                </div>
+            </div>
+            <!-- View risultato -->
+            <div id="scorerResultView" style="display:none">
+                <div class="scorer-result">
+                    <div class="scorer-result-circle" id="scorerCircle"></div>
+                    <div class="scorer-result-title" id="scorerResultTitle"></div>
+                    <div class="scorer-result-desc" id="scorerResultDesc"></div>
+                    <div class="scorer-result-score" id="scorerResultScore"></div>
+                    <div class="scorer-breakdown">
+                        <div class="scorer-breakdown-label">Analisi per categoria</div>
+                        <div id="scorerBreakdownList"></div>
+                    </div>
+                    <div class="scorer-result-actions">
+                        <button id="scorerBtnRifai" onclick="rifaiScorer()">↩ Rifai il quiz</button>
+                        <button id="scorerBtnSalva" onclick="salvaScorer()">💾 Salva valutazione</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -909,7 +1109,7 @@
         tbody.innerHTML = '';
 
         if (lista.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8">
+            tbody.innerHTML = `<tr><td colspan="9">
                 <div class="empty-state">
                     <div class="empty-icon">📋</div>
                     <div class="empty-title">Nessuna chiamata registrata</div>
@@ -928,6 +1128,7 @@
                     <td>${fmtBadge(c.f1label, c.f1ts)}</td>
                     <td>${fmtBadge(c.f2label, c.f2ts)}</td>
                     <td>${fmtBadge(c.f3label, c.f3ts)}</td>
+                    <td>${renderScorerBadge(c)}</td>
                     <td>
                         <div class="row-actions">
                             <button class="btn-gcal-row" data-gcal-id="${c.id}" onclick="inviaAGcal('${c.id}')" title="${c.gcalSent ? 'Già inviato — clicca per inviare di nuovo' : 'Invia a Google Calendar'}" aria-label="${c.gcalSent ? 'Già inviato a Google Calendar' : 'Invia a Google Calendar'}" style="display:${_gcalToken ? '' : 'none'};opacity:${c.gcalSent ? '0.5' : '1'}">${c.gcalSent ? '✅' : '📅'}</button>
@@ -1061,6 +1262,7 @@
                 <td class="col-mono">${c.f1label || '—'}</td>
                 <td class="col-mono">${c.f2label || '—'}</td>
                 <td class="col-mono">${c.f3label || '—'}</td>
+                <td>${renderScorerBadge(c)}</td>
                 <td>
                     <div class="row-actions">
                         <button class="btn-restore" onclick="ripristinaChiamata('${c.id}')" title="Ripristina" aria-label="Ripristina">↩</button>
@@ -1266,7 +1468,12 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
         if (!_gcalToken || !_gapiReady) return;
         const { f1, f2, f3 } = calcolaFollowup(chiamata.appData, chiamata.appOra);
         const tz   = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const desc = chiamata.tel ? `${chiamata.nome}\n${chiamata.tel}` : chiamata.nome;
+        let desc = chiamata.tel ? `${chiamata.nome}\n${chiamata.tel}` : chiamata.nome;
+        if (chiamata.scorerResult) {
+            const sr   = chiamata.scorerResult;
+            const info = _scorerFasceInfo[sr.fascia];
+            if (info) desc += `\n\n— Valutazione Cliente —\n${info.lettera}\n${info.titolo}\n${info.desc}\nPunteggio rischio: ${sr.score} / 30`;
+        }
         const mk   = (summary, dt) => ({
             summary,
             description: desc,
@@ -1302,6 +1509,318 @@ localStorage.setItem('chiamate',          JSON.stringify([...esistenti,  ...dati
         if (skipped > 0) parts.push(`${skipped} già passati — non inviati`);
         if (parts.length > 0) _gcalToast(parts.join(' · '));
     }
+
+    /* ── Client Scorer ── */
+    const SCORER_QUESTIONS = [
+        {
+            categoria: 'Scoperta',
+            domanda: 'Come ti hanno contattato per la prima volta?',
+            tip: null,
+            opzioni: [
+                { testo: 'Referral da un cliente passato o contatto fidato', punti: 0 },
+                { testo: 'Ha trovato il mio portfolio, LinkedIn o sito web', punti: 1 },
+                { testo: 'Contatto freddo su social media o bacheche lavoro', punti: 2 },
+                { testo: 'Marketplace low-cost (Fiverr, Upwork, ecc.)', punti: 3 },
+            ]
+        },
+        {
+            categoria: 'Chiarezza Progetto',
+            domanda: 'Quanto chiaramente hanno descritto cosa vogliono?',
+            tip: 'Brief vaghi portano a scope creep. Un brief chiaro è il segnale di un cliente che sa cosa vuole.',
+            opzioni: [
+                { testo: 'Brief dettagliato con obiettivi, consegne e contesto chiari', punti: 0 },
+                { testo: 'Abbastanza chiaro — qualche lacuna ma disponibili a chiarire', punti: 1 },
+                { testo: 'Piuttosto vago — "lo definiamo mentre procediamo"', punti: 2 },
+                { testo: '"Lo capisco quando lo vedo" — nessuna direzione concreta', punti: 3 },
+            ]
+        },
+        {
+            categoria: 'Segnali di Valore',
+            domanda: 'Cosa hanno chiesto per prima cosa nella conversazione?',
+            tip: 'Chi parte dal budget prima di conoscere il tuo lavoro tende a valutare il prezzo più della qualità.',
+            opzioni: [
+                { testo: 'La mia esperienza, approccio o portfolio — poi il compenso', punti: 0 },
+                { testo: 'Ha chiesto entrambe le cose in modo equilibrato', punti: 1 },
+                { testo: 'Il compenso era la prima domanda, prima di qualsiasi contesto', punti: 2 },
+                { testo: 'Il compenso era praticamente l\'unico argomento', punti: 3 },
+            ]
+        },
+        {
+            categoria: 'Tempistiche',
+            domanda: 'Quali aspettative ha sulle scadenze?',
+            tip: null,
+            opzioni: [
+                { testo: 'Timeline flessibile, aperto a ciò che è realistico per un lavoro di qualità', punti: 0 },
+                { testo: 'Data precisa ma ragionevole e negoziabile', punti: 1 },
+                { testo: 'Scadenza stretta, poca flessibilità', punti: 2 },
+                { testo: '"ASAP" / "Serviva ieri" / rush non negoziabile', punti: 3 },
+            ]
+        },
+        {
+            categoria: 'Budget',
+            domanda: 'Quanto è chiaro sul budget a disposizione?',
+            tip: 'Un cliente con budget definito è più organizzato e decisivo.',
+            opzioni: [
+                { testo: 'Ha indicato una cifra o un range preciso che funziona', punti: 0 },
+                { testo: 'Ha un\'idea di massima, aperto alla discussione', punti: 1 },
+                { testo: 'Vago — "aspetto il tuo preventivo"', punti: 2 },
+                { testo: '"Cerco il prezzo migliore" / "il budget è davvero limitato"', punti: 3 },
+            ]
+        },
+        {
+            categoria: 'Contratto',
+            domanda: 'Come ha reagito all\'idea di un accordo formale?',
+            tip: null,
+            opzioni: [
+                { testo: 'L\'ha proposto lui stesso o ha risposto con entusiasmo', punti: 0 },
+                { testo: 'Nessun problema quando l\'ho proposto io', punti: 1 },
+                { testo: 'Un po\' esitante, ma ha accettato dopo qualche discussione', punti: 2 },
+                { testo: 'Resistente — "serve davvero tutto questo?" / "iniziamo subito"', punti: 3 },
+            ]
+        },
+        {
+            categoria: 'Comunicazione',
+            domanda: 'Come descriveresti il suo stile comunicativo finora?',
+            tip: null,
+            opzioni: [
+                { testo: 'Organizzato, chiaro e reattivo — facile da gestire', punti: 0 },
+                { testo: 'Generalmente chiaro, qualche ritardo ma accettabile', punti: 1 },
+                { testo: 'Un po\' caotico o lento — richiede solleciti', punti: 2 },
+                { testo: 'Caotico, difficile da raggiungere, cambia idea continuamente', punti: 3 },
+            ]
+        },
+        {
+            categoria: 'Revisioni',
+            domanda: 'Quali aspettative ha sulle revisioni?',
+            tip: 'Le revisioni illimitate sono uno dei modi più comuni per perdere soldi come freelance.',
+            opzioni: [
+                { testo: 'Scope definito con un numero preciso di round di revisione', punti: 0 },
+                { testo: 'Ha menzionato 1–2 round, sembra ragionevole', punti: 1 },
+                { testo: 'Non chiaro — non ne ha parlato, potrebbe diventare un problema', punti: 2 },
+                { testo: '"Finché non sono soddisfatto" / "tutte quelle che servono"', punti: 3 },
+            ]
+        },
+        {
+            categoria: 'Termini di Pagamento',
+            domanda: 'Com\'è la sua posizione riguardo a un acconto?',
+            tip: 'La resistenza agli acconti è un segnale d\'allerta. Spesso indica chi cerca lavoro per non pagarlo.',
+            opzioni: [
+                { testo: 'Totalmente d\'accordo — l\'ha menzionato lui stesso', punti: 0 },
+                { testo: 'Disponibile a un acconto quando l\'ho proposto', punti: 1 },
+                { testo: 'Preferisce pagare a consegna ma aperto alla discussione', punti: 2 },
+                { testo: 'Resistente o contrario a qualsiasi pagamento anticipato', punti: 3 },
+            ]
+        },
+        {
+            categoria: 'Istinto',
+            domanda: 'Cosa ti dice l\'istinto su questo cliente?',
+            tip: 'L\'istinto è il riconoscimento di pattern da ogni cliente che hai avuto. Fidati.',
+            opzioni: [
+                { testo: 'Genuinamente entusiasta — sembra un\'ottima collaborazione', punti: 0 },
+                { testo: 'Prevalentemente positivo, con qualche piccola esitazione', punti: 1 },
+                { testo: 'Qualcosa non torna, ma non riesco a identificarlo', punti: 2 },
+                { testo: 'Brutto presentimento — ci sono già stato e è finita male', punti: 3 },
+            ]
+        },
+    ];
+
+    const _scorerFasceInfo = {
+        verde:  { lettera: 'V', titolo: 'Cliente Ideale',      desc: 'Tutti i segnali sono positivi. Questo cliente sa cosa vuole, rispetta il tuo tempo e il tuo lavoro. Vai avanti con fiducia.' },
+        giallo: { lettera: 'C', titolo: 'Procedi con Cautela', desc: 'Ci sono segnali contrastanti. Prima di dire sì: richiedi un acconto più alto, definisci bene lo scope per iscritto e inserisci i rischi nel prezzo.' },
+        rosso:  { lettera: 'F', titolo: 'Lascia Perdere',      desc: 'Le bandiere rosse si sono accumulate. Il tuo tempo vale più di questo drama. Passa oltre — e libera spazio per un\'opportunità migliore.' },
+    };
+
+    let _scorer = { clienteId: null, risposte: [], step: 0 };
+
+    function getScorerFascia(score) {
+        if (score <= 10) return 'verde';
+        if (score <= 20) return 'giallo';
+        return 'rosso';
+    }
+
+    function renderScorerBadge(c) {
+        const id = escHtml(String(c.id));
+        if (c.scorerResult) {
+            const f      = c.scorerResult.fascia;
+            const s      = c.scorerResult.score;
+            const info   = _scorerFasceInfo[f];
+            const letter = info ? info.lettera : '?';
+            return `<span class="scorer-badge ${escHtml(f)}" onclick="apriScorer('${id}')" title="Valutazione salvata — clicca per rivedere">${letter} · ${s}/30</span>`;
+        }
+        return `<button class="btn-scorer" onclick="apriScorer('${id}')" title="Valuta questo cliente">⚖️</button>`;
+    }
+
+    function apriScorer(id) {
+        const lista    = JSON.parse(localStorage.getItem('chiamate'))          || [];
+        const archivio = JSON.parse(localStorage.getItem('chiamate_archivio')) || [];
+        const c = lista.find(x => x.id == id) || archivio.find(x => x.id == id);
+        if (!c) return;
+
+        _scorer.clienteId = id;
+
+        if (c.scorerResult) {
+            _scorer.risposte = [...c.scorerResult.answers];
+            _scorer.step = 0;
+            document.getElementById('scorerQuizView').style.display    = 'none';
+            document.getElementById('scorerResultView').style.display  = '';
+            renderScorerResult();
+        } else {
+            _scorer.risposte = new Array(10).fill(null);
+            _scorer.step = 0;
+            document.getElementById('scorerQuizView').style.display    = '';
+            document.getElementById('scorerResultView').style.display  = 'none';
+            renderScorerStep();
+        }
+
+        document.getElementById('scorerOverlay').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function chiudiScorer() {
+        document.getElementById('scorerOverlay').style.display = 'none';
+        document.body.style.overflow = '';
+        _scorer = { clienteId: null, risposte: [], step: 0 };
+    }
+
+    function renderScorerStep() {
+        const q   = SCORER_QUESTIONS[_scorer.step];
+        const n   = _scorer.step + 1;
+        const pct = Math.round((_scorer.step / 10) * 100);
+
+        document.getElementById('scorerProgressFill').style.width = pct + '%';
+        document.getElementById('scorerProgressText').textContent  = `Domanda ${n} di 10`;
+        document.getElementById('scorerProgressPct').textContent   = pct + '%';
+        document.getElementById('scorerMeta').textContent          = `DOMANDA ${n} — ${q.categoria.toUpperCase()}`;
+        document.getElementById('scorerQuestion').textContent      = q.domanda;
+
+        const tipEl = document.getElementById('scorerTip');
+        if (q.tip) {
+            tipEl.textContent    = '💡 ' + q.tip;
+            tipEl.style.display  = '';
+        } else {
+            tipEl.style.display  = 'none';
+        }
+
+        const lista = document.getElementById('scorerOptions');
+        lista.innerHTML = '';
+        const risposta = _scorer.risposte[_scorer.step];
+        q.opzioni.forEach(op => {
+            const li = document.createElement('li');
+            li.className    = 'scorer-option' + (risposta === op.punti ? ' selected' : '');
+            li.dataset.punti = op.punti;
+            li.innerHTML    = `<span class="scorer-option-radio"></span><span class="scorer-option-text">${escHtml(op.testo)}</span>`;
+            li.addEventListener('click', () => selezionaOpzione(op.punti));
+            lista.appendChild(li);
+        });
+
+        document.getElementById('scorerBtnBack').disabled = (_scorer.step === 0);
+        document.getElementById('scorerBtnNext').disabled = (risposta === null);
+        document.getElementById('scorerBtnNext').textContent = _scorer.step === 9 ? 'Vedi il risultato →' : 'Avanti →';
+    }
+
+    function selezionaOpzione(punti) {
+        _scorer.risposte[_scorer.step] = punti;
+        document.querySelectorAll('#scorerOptions .scorer-option').forEach(li => {
+            li.classList.toggle('selected', Number(li.dataset.punti) === punti);
+        });
+        document.getElementById('scorerBtnNext').disabled = false;
+    }
+
+    function avanzaScorer() {
+        if (_scorer.risposte[_scorer.step] === null) return;
+        if (_scorer.step < 9) {
+            _scorer.step++;
+            renderScorerStep();
+        } else {
+            document.getElementById('scorerQuizView').style.display   = 'none';
+            document.getElementById('scorerResultView').style.display = '';
+            renderScorerResult();
+        }
+    }
+
+    function tornaScorer() {
+        if (_scorer.step > 0) {
+            _scorer.step--;
+            renderScorerStep();
+        }
+    }
+
+    function rifaiScorer() {
+        _scorer.risposte = new Array(10).fill(null);
+        _scorer.step = 0;
+        document.getElementById('scorerQuizView').style.display   = '';
+        document.getElementById('scorerResultView').style.display = 'none';
+        renderScorerStep();
+    }
+
+    function renderScorerResult() {
+        const score  = _scorer.risposte.reduce((s, v) => s + (v === null ? 0 : v), 0);
+        const fascia = getScorerFascia(score);
+        const info   = _scorerFasceInfo[fascia];
+
+        const circle = document.getElementById('scorerCircle');
+        circle.className   = 'scorer-result-circle ' + fascia;
+        circle.textContent = info.lettera;
+
+        const titleEl = document.getElementById('scorerResultTitle');
+        titleEl.className   = 'scorer-result-title ' + fascia;
+        titleEl.textContent = info.titolo;
+
+        document.getElementById('scorerResultDesc').textContent  = info.desc;
+        document.getElementById('scorerResultScore').textContent = `Punteggio rischio: ${score} / 30`;
+
+        const breakdownList = document.getElementById('scorerBreakdownList');
+        breakdownList.innerHTML = '';
+        SCORER_QUESTIONS.forEach((q, i) => {
+            const punti    = _scorer.risposte[i] === null ? 0 : _scorer.risposte[i];
+            const barFascia = punti <= 1 ? 'verde' : punti === 2 ? 'giallo' : 'rosso';
+            const barColor  = barFascia === 'verde' ? 'var(--scorer-green)' : barFascia === 'giallo' ? 'var(--scorer-yellow)' : 'var(--danger)';
+            const row = document.createElement('div');
+            row.className = 'scorer-breakdown-row';
+            row.innerHTML = `
+                <span class="scorer-breakdown-dot" style="background:${barColor}"></span>
+                <span class="scorer-breakdown-name">${escHtml(q.categoria)}</span>
+                <div class="scorer-breakdown-bar-wrap">
+                    <div class="scorer-breakdown-bar" style="background:${barColor};width:0%"></div>
+                </div>`;
+            breakdownList.appendChild(row);
+        });
+
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            breakdownList.querySelectorAll('.scorer-breakdown-bar').forEach((bar, i) => {
+                const punti = _scorer.risposte[i] === null ? 0 : _scorer.risposte[i];
+                bar.style.width = Math.round((punti / 3) * 100) + '%';
+            });
+        }));
+    }
+
+    function salvaScorer() {
+        const score  = _scorer.risposte.reduce((s, v) => s + (v === null ? 0 : v), 0);
+        const fascia = getScorerFascia(score);
+        const result = { score, fascia, answers: [..._scorer.risposte], date: new Date().toISOString() };
+
+        let lista = JSON.parse(localStorage.getItem('chiamate')) || [];
+        let idx   = lista.findIndex(x => x.id == _scorer.clienteId);
+        if (idx !== -1) {
+            lista[idx].scorerResult = result;
+            localStorage.setItem('chiamate', JSON.stringify(lista));
+        } else {
+            let archivio = JSON.parse(localStorage.getItem('chiamate_archivio')) || [];
+            idx = archivio.findIndex(x => x.id == _scorer.clienteId);
+            if (idx !== -1) {
+                archivio[idx].scorerResult = result;
+                localStorage.setItem('chiamate_archivio', JSON.stringify(archivio));
+            }
+        }
+
+        chiudiScorer();
+        mostraDati();
+        mostraStorico();
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && document.getElementById('scorerOverlay').style.display === 'flex') chiudiScorer();
+    });
 
     function _gcalToast(msg) {
         const bar = document.getElementById('notifBar');
