@@ -1,15 +1,10 @@
-# File solo locali — non pushare su GitHub
+# Tutto ciò che non va su GitHub — solo index.html, manifest.json, fut-icon.png
+BKUP/
+ClientScorer/
 AnalisiOpus4.7.txt
 MemoRefactorGSheets.txt
 PropostaOpus4.7.md
 MPORTANTE.txt
 FoglioReminderFollowupScript.txt
-index_bkup-1.html
-index_bkup-2.html
-index_bkup-3_PreOpus4.7.html
-index_bkup_4.html
-index_bkup_5_PreClientScorer.html
-ClientScorer/
-
-# Sistema
+index_bkup*.html
 .DS_Store
