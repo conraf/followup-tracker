@@ -220,12 +220,13 @@
         .btn-primary {
             background: var(--orange);
             color: #fff;
-            border: none;
+            border: 1px solid transparent;
             border-radius: 8px;
             padding: 11px 24px;
             font-family: var(--font-body);
             font-size: 14px;
             font-weight: 600;
+            line-height: 1;
             cursor: pointer;
             white-space: nowrap;
             display: flex;
@@ -236,22 +237,24 @@
         .btn-primary:hover { background: var(--orange-hover); box-shadow: 0 0 22px var(--orange-glow); }
         .btn-primary:active { transform: scale(0.97); }
         .btn-primary-blue {
-            background: var(--primary);
-            color: #fff;
-            border: none;
+            background: var(--azure-dim);
+            color: var(--azure);
+            border: 1px solid rgba(56,189,248,0.30);
             border-radius: 8px;
             padding: 11px 24px;
             font-family: var(--font-body);
             font-size: 14px;
             font-weight: 600;
+            line-height: 1;
             cursor: pointer;
             white-space: nowrap;
             display: flex;
             align-items: center;
-            gap: 7px;
-            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+            gap: 4px;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s;
         }
-        .btn-primary-blue:hover { background: #1d4ed8; box-shadow: 0 0 22px rgba(37,99,235,0.30); }
+        .btn-primary-blue span { line-height: 1; display: block; }
+        .btn-primary-blue:hover { background: rgba(56,189,248,0.16); border-color: rgba(56,189,248,0.50); }
         .btn-primary-blue:active { transform: scale(0.97); }
 
         /* ── Table Card ── */
@@ -785,7 +788,7 @@
                 <label class="field-label" for="oraApp">Ora Appuntamento</label>
                 <input type="time" id="oraApp" onchange="aggiornaPreviews()">
             </div>
-            <button class="btn-primary-blue" onclick="registraConValutazione()">⚖️ Registra</button>
+            <button class="btn-primary-blue" onclick="registraConValutazione()"><span>⚖️</span>Registra</button>
             <button class="btn-primary" onclick="aggiungiChiamata()">Registra</button>
         </div>
 
